@@ -20,3 +20,12 @@ Thumbs.db
 *.swo
 .vscode/settings.json
 .idea/
+
+# Compiled TypeScript outputs in source directories
+shared/src/**/*.js
+shared/src/**/*.js.map
+shared/src/**/*.d.ts
+shared/src/**/*.d.ts.map
+
+# Backend compiled output
+backend/dist/
