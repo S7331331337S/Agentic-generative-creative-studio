@@ -1,0 +1,24 @@
+{
+  "preset": "ts-jest",
+  "testEnvironment": "jsdom",
+  "roots": ["<rootDir>/tests", "<rootDir>/src"],
+  "testMatch": ["**/*.test.{ts,tsx}"],
+  "transform": {
+    "^.+\\.tsx?$": ["ts-jest", {
+      "tsconfig": {
+        "jsx": "react-jsx",
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "paths": {
+          "@agcs/shared": ["../shared/src"]
+        }
+      }
+    }]
+  },
+  "moduleNameMapper": {
+    "^@agcs/shared$": "<rootDir>/../shared/src/index.ts",
+    "\\.(css|less|scss|sass)$": "<rootDir>/tests/__mocks__/styleMock.ts"
+  },
+  "setupFilesAfterEnv": ["<rootDir>/tests/setupTests.ts"]
+}
