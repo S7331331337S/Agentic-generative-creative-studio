@@ -1,8 +1,18 @@
-# Agentic Generative Creative Studio
+# agentic-framework-core
 
-A fullstack agentic cross-platform generative creative studio for parallel clustered agents with context tools, knowledge integration, and creative workflow orchestration.
+The core engine for the [Agentic Generative Creative Studio](https://github.com/S7331331337S/Agentic-generative-creative-studio). This package provides the reusable, modular runtime that powers parallel clustered agents, workflow orchestration, knowledge integration, and creative pipeline management.
 
-[![CI](https://github.com/S7331331337S/Agentic-generative-creative-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/S7331331337S/Agentic-generative-creative-studio/actions/workflows/ci.yml)
+[![CI](https://github.com/S7331331337S/agentic-framework-core/actions/workflows/ci.yml/badge.svg)](https://github.com/S7331331337S/agentic-framework-core/actions/workflows/ci.yml)
+
+---
+
+## What Is This?
+
+`agentic-framework-core` is the extracted "bot-bending" engine originally developed inside the `Agentic-generative-creative-studio` monorepo. By living in its own repository it can be:
+
+- **Imported** as a dependency by any studio front-end or third-party project
+- **Versioned** independently so breaking changes to the engine don't accidentally break the UI
+- **Tested** in isolation via its own CI pipeline
 
 ---
 
@@ -33,30 +43,30 @@ A fullstack agentic cross-platform generative creative studio for parallel clust
 └─────────────────────────────────────────────────────────────┘
 ```
 
+---
+
 ## Features
 
-### Frontend
-- **React + TypeScript** dashboard with real-time WebSocket updates
-- **Cluster Manager** – create, monitor, and delete agent clusters
-- **Workflow Builder** – define multi-step creative workflows with dependency resolution
-- **Knowledge Base** – semantic search, entry management, context snapshots
-- **Real-time Metrics** – live CPU, memory, task queue, and agent status
+### Agents
+- **Text, Image, Audio, MultiModal** agent types built on a common `BaseAgent` interface
+- Configurable per-agent concurrency, priority, and retry logic
 
-### Backend
-- **Agent Types**: Text, Image, Audio, MultiModal
-- **Cluster Management**: parallel agent clusters with configurable load-balancing strategies (round-robin, least-loaded, priority-based)
-- **Workflow Engine**: DAG-based workflow orchestration with automatic topological sorting, dependency resolution, and retry logic
-- **Knowledge Base**: semantic search using cosine similarity, tag/type filtering, context snapshots for agent augmentation
-- **Context Aggregator**: builds context windows for agents by aggregating relevant knowledge entries
+### Cluster Management
+- Parallel agent clusters with pluggable load-balancing strategies (round-robin, least-loaded, priority-based)
+- Dynamic scaling: add or remove agents from a live cluster without downtime
+
+### Workflow Engine
+- DAG-based orchestration with automatic topological sorting and dependency resolution
+- Retry logic with exponential back-off; full run history
+
+### Knowledge Base
+- Semantic search using cosine similarity with tag/type filtering
+- Context snapshots that give agents a relevant "memory window" at execution time
+
+### API & Realtime
+- **REST API**: full CRUD for clusters, workflows, knowledge entries, and task submission
 - **WebSocket Server**: real-time event broadcasting (agent status, task progress, system metrics)
-- **REST API**: full CRUD for clusters, workflows, knowledge entries; task submission
-
-### Security
-- Helmet.js HTTP security headers
-- Rate limiting (200 req/min per IP)
-- CORS configuration
-- Structured logging (Winston)
-- Graceful shutdown
+- Helmet.js security headers, rate limiting, CORS, structured Winston logging, graceful shutdown
 
 ---
 
