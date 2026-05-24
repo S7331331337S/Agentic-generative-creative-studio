@@ -16,7 +16,7 @@
     "@agcs/shared": "*",
     "express": "^4.18.2",
     "ws": "^8.16.0",
-    "uuid": "^9.0.0",
+    "uuid": "^14.0.0",
     "cors": "^2.8.5",
     "helmet": "^7.1.0",
     "express-rate-limit": "^7.2.0",
