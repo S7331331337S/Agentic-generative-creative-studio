@@ -5,15 +5,18 @@ import {
   AgentStatus,
   TaskDefinition,
   TaskResult,
-  TaskStatus,
   WsEvent,
 } from '@agcs/shared';
 import { generateId, now } from '../utils/helpers';
 import { logger } from '../utils/logger';
 
+const DEFAULT_TASK_TIMEOUT_MS = 30_000;
+
 export abstract class BaseAgent extends EventEmitter {
   protected config: AgentConfig;
   protected state: AgentState;
+  /** In-flight task count. Bounded by config.maxConcurrentTasks. */
+  private activeTasks = 0;
 
   constructor(config: AgentConfig) {
     super();
@@ -44,8 +47,21 @@ export abstract class BaseAgent extends EventEmitter {
     return this.state.status;
   }
 
+  /** Concurrency ceiling for this agent; always at least 1. */
+  getMaxConcurrentTasks(): number {
+    return Math.max(1, this.config.maxConcurrentTasks ?? 1);
+  }
+
+  /** Number of tasks currently in flight — the real signal for load balancing. */
+  getActiveTaskCount(): number {
+    return this.activeTasks;
+  }
+
   isAvailable(): boolean {
-    return this.state.status === 'idle';
+    if (this.state.status === 'paused' || this.state.status === 'error') {
+      return false;
+    }
+    return this.activeTasks < this.getMaxConcurrentTasks();
   }
 
   async executeTask(task: TaskDefinition): Promise<TaskResult> {
@@ -58,6 +74,7 @@ export abstract class BaseAgent extends EventEmitter {
       };
     }
 
+    this.activeTasks++;
     this.setStatus('running', task);
     const startedAt = now();
 
@@ -66,7 +83,7 @@ export abstract class BaseAgent extends EventEmitter {
         type: task.type,
       });
 
-      const output = await this.processTask(task);
+      const output = await this.withTimeout(this.processTask(task), task);
 
       const result: TaskResult = {
         taskId: task.id,
@@ -83,7 +100,7 @@ export abstract class BaseAgent extends EventEmitter {
       };
 
       this.state.completedTasks++;
-      this.setStatus('idle');
+      this.releaseSlot();
       this.emitEvent('task:completed', result);
       return result;
     } catch (err) {
@@ -100,21 +117,62 @@ export abstract class BaseAgent extends EventEmitter {
       };
 
       this.state.errorCount++;
-      this.setStatus('idle');
+      this.releaseSlot();
       this.emitEvent('task:failed', result);
       return result;
     }
   }
 
+  /**
+   * A task that never settles would otherwise pin its concurrency slot forever
+   * and stall the cluster queue behind it.
+   */
+  private withTimeout<T>(work: Promise<T>, task: TaskDefinition): Promise<T> {
+    const timeoutMs = this.config.taskTimeoutMs ?? DEFAULT_TASK_TIMEOUT_MS;
+    let timer: ReturnType<typeof setTimeout>;
+
+    return Promise.race([
+      work,
+      new Promise<never>((_resolve, reject) => {
+        timer = setTimeout(
+          () =>
+            reject(
+              new Error(
+                `Task ${task.id} timed out after ${timeoutMs}ms on agent ${this.config.id}`
+              )
+            ),
+          timeoutMs
+        );
+      }),
+    ]).finally(() => clearTimeout(timer)) as Promise<T>;
+  }
+
+  /** Frees a concurrency slot and returns to idle only once fully drained. */
+  private releaseSlot(): void {
+    this.activeTasks = Math.max(0, this.activeTasks - 1);
+    if (this.activeTasks === 0) {
+      this.setStatus('idle');
+    } else {
+      this.state.lastHeartbeat = now();
+      this.emitEvent('agent:status', this.getState());
+    }
+  }
+
+  /** Stops the agent accepting new work. In-flight tasks are allowed to finish. */
   pause(): void {
-    if (this.state.status === 'running') {
+    if (this.state.status !== 'paused') {
       this.setStatus('paused');
     }
   }
 
+  /**
+   * Returns the agent to service. Emits 'agent:available' so an owning cluster
+   * can drain any queue that backed up while this agent was unavailable.
+   */
   resume(): void {
     if (this.state.status === 'paused') {
-      this.setStatus('idle');
+      this.setStatus(this.activeTasks > 0 ? 'running' : 'idle');
+      this.emit('available', this.getId());
     }
   }
 

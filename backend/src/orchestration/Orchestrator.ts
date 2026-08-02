@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import { SystemMetrics } from '@agcs/shared';
 import { ClusterManager } from '../clusters/ClusterManager';
 import { KnowledgeBase } from '../knowledge/KnowledgeBase';
 import { ContextAggregator } from '../knowledge/ContextAggregator';
@@ -30,9 +31,28 @@ export class Orchestrator extends EventEmitter {
     this.wireEvents();
   }
 
+  /**
+   * System-wide metrics. The ClusterManager cannot see the knowledge base, so the
+   * Orchestrator is the only place a complete picture can be assembled — every
+   * consumer (REST and WebSocket alike) must come through here.
+   */
+  getSystemMetrics(): SystemMetrics {
+    return {
+      ...this.clusterManager.getSystemMetrics(),
+      knowledgeEntries: this.knowledgeBase.count(),
+    };
+  }
+
   private wireEvents(): void {
-    // Forward all events from sub-systems to Orchestrator's event emitter
-    this.clusterManager.on('event', (event) => this.emit('event', event));
+    // Forward all events from sub-systems to Orchestrator's event emitter,
+    // re-stamping metrics so broadcasts carry the same numbers the REST API serves.
+    this.clusterManager.on('event', (event) => {
+      if (event?.type === 'system:metrics') {
+        this.emit('event', { ...event, payload: this.getSystemMetrics() });
+        return;
+      }
+      this.emit('event', event);
+    });
     this.workflowEngine.on('event', (event) => this.emit('event', event));
     this.knowledgeBase.on('entry:added', (entry) => {
       this.emit('event', {

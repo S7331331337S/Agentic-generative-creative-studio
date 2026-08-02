@@ -7,10 +7,7 @@ export function createMetricsRouter(orchestrator: Orchestrator): Router {
 
   // GET /metrics
   router.get('/', (_req: Request, res: Response) => {
-    const metrics = orchestrator.clusterManager.getSystemMetrics();
-    // Merge knowledge entry count
-    metrics.knowledgeEntries = orchestrator.knowledgeBase.count();
-    res.json({ success: true, data: metrics, timestamp: now() });
+    res.json({ success: true, data: orchestrator.getSystemMetrics(), timestamp: now() });
   });
 
   // GET /metrics/health

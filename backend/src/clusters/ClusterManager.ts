@@ -96,17 +96,22 @@ export class ClusterManager extends EventEmitter {
       tasksQueued: states.reduce((s, c) => s + c.queuedTasks, 0),
       tasksCompleted: states.reduce((s, c) => s + c.completedTasks, 0),
       tasksFailed: states.reduce((s, c) => s + c.failedTasks, 0),
-      knowledgeEntries: 0, // Updated by orchestrator
+      // Cluster-local view; the Orchestrator owns the knowledge base and fills this in.
+      knowledgeEntries: 0,
       systemMemoryMb,
       systemCpuPercent,
     };
   }
 
   startMetricsBroadcast(intervalMs = 5000): void {
+    // Guard against a second start orphaning the first interval.
+    this.stopMetricsBroadcast();
     this.metricsInterval = setInterval(() => {
       const metrics = this.getSystemMetrics();
       this.emit('event', { type: 'system:metrics', payload: metrics, timestamp: now() });
     }, intervalMs);
+    // Never hold the process open purely to publish metrics.
+    this.metricsInterval.unref?.();
   }
 
   stopMetricsBroadcast(): void {

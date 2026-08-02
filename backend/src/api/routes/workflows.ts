@@ -38,7 +38,15 @@ export function createWorkflowsRouter(orchestrator: Orchestrator): Router {
       createdAt: now(),
     };
 
-    workflowEngine.registerWorkflow(definition);
+    try {
+      // Rejects cycles, dangling dependencies and malformed conditions.
+      workflowEngine.registerWorkflow(definition);
+    } catch (err) {
+      const error = err instanceof Error ? err.message : String(err);
+      res.status(400).json({ success: false, error, timestamp: now() });
+      return;
+    }
+
     res.status(201).json({ success: true, data: definition, timestamp: now() });
   });
 

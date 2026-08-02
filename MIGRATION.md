@@ -1,5 +1,11 @@
 # Migration Guide — `copilot/create-conceptual-framework-prototype` → `agentic-framework-core`
 
+> **Note on where you are reading this.** This document was authored from the perspective of the
+> extracted [`agentic-framework-core`](https://github.com/S7331331337S/agentic-framework-core)
+> repository, so "this repository" below refers to *that* one. It is kept here as the historical
+> record of the split. The repository you are currently in is the **Studio** monorepo, which retains
+> the backend, frontend, and shared packages — see [README.md](README.md).
+
 This document records the one-time migration of the Agentic Framework from a feature branch in the
 [Agentic-generative-creative-studio](https://github.com/S7331331337S/Agentic-generative-creative-studio)
 repository into this dedicated repository (`agentic-framework-core`).

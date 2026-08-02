@@ -33,7 +33,7 @@ export class WsServer {
       });
 
       // Send current system metrics on connect
-      const metrics = this.orchestrator.clusterManager.getSystemMetrics();
+      const metrics = this.orchestrator.getSystemMetrics();
       this.send(ws, { type: 'system:metrics', payload: metrics, timestamp: Date.now() });
 
       ws.on('message', (data) => {

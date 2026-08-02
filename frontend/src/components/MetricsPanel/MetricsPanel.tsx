@@ -1,4 +1,3 @@
-import React from 'react';
 import { SystemMetrics } from '@agcs/shared';
 import { ConnectionStatus } from '../../types';
 

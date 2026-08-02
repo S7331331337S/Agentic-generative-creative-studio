@@ -1,7 +1,42 @@
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
+import { AgentPriority, AgentType, TaskType } from '@agcs/shared';
 
 export function generateId(): string {
-  return uuidv4();
+  return randomUUID();
+}
+
+/**
+ * Which agent types are capable of serving a given task type.
+ * Ordered most-specialised first so schedulers can prefer a dedicated agent
+ * over a generalist multimodal one.
+ */
+const TASK_CAPABILITY: Record<TaskType, AgentType[]> = {
+  'generate-text': ['text', 'multimodal'],
+  'generate-image': ['image', 'multimodal'],
+  'generate-audio': ['audio', 'multimodal'],
+  compose: ['multimodal'],
+  analyze: ['text', 'multimodal'],
+  transform: ['text', 'multimodal'],
+};
+
+export function agentTypesForTaskType(taskType: TaskType): AgentType[] {
+  return TASK_CAPABILITY[taskType] ?? [];
+}
+
+export function canAgentHandle(agentType: AgentType, taskType: TaskType): boolean {
+  return agentTypesForTaskType(taskType).includes(agentType);
+}
+
+/** Higher number wins. Used to order the cluster queue and break scheduling ties. */
+const PRIORITY_RANK: Record<AgentPriority, number> = {
+  critical: 3,
+  high: 2,
+  normal: 1,
+  low: 0,
+};
+
+export function priorityRank(priority: AgentPriority | undefined): number {
+  return PRIORITY_RANK[priority ?? 'normal'] ?? 1;
 }
 
 export function now(): number {

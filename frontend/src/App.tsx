@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { WsEvent, SystemMetrics, ClusterConfig } from '@agcs/shared';
+import { WsEvent, SystemMetrics, ClusterConfig, ClusterState } from '@agcs/shared';
 import { ApiCluster, ConnectionStatus } from './types';
 import { api } from './utils/api';
 import { useWebSocket } from './hooks/useWebSocket';
@@ -34,14 +34,13 @@ export default function App() {
       setMetrics(event.payload as SystemMetrics);
     } else if (event.type === 'cluster:status') {
       // Update cluster state
+      const payload = event.payload as Partial<ClusterState> & { id: string };
       setClusters((prev) =>
-        prev.map((c) => {
-          const payload = event.payload as { id: string; status: string };
-          if (c.state.id === payload.id) {
-            return { ...c, state: { ...c.state, ...payload } };
-          }
-          return c;
-        })
+        prev.map((c) =>
+          c.state.id === payload.id
+            ? { ...c, state: { ...c.state, ...payload } }
+            : c
+        )
       );
     }
   }, []);

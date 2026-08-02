@@ -163,7 +163,7 @@ export function KnowledgePanel() {
       <div>
         {searchResults && (
           <p style={{ color: '#64748b', fontSize: 12, marginBottom: 8 }}>
-            {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} for "{searchQuery}"
+            {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} for &quot;{searchQuery}&quot;
           </p>
         )}
         {displayedEntries.length === 0 ? (
