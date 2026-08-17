@@ -1,4 +1,3 @@
-import React from 'react';
 import { AgentConfig, AgentState, AgentStatus } from '@agcs/shared';
 
 interface AgentCardProps {

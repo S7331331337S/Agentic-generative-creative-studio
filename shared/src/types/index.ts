@@ -8,9 +8,12 @@ export interface AgentConfig {
   name: string;
   type: AgentType;
   priority: AgentPriority;
+  /** Maximum tasks this agent will run at once. Values < 1 are treated as 1. */
   maxConcurrentTasks: number;
   contextWindowSize: number;
   modelConfig: ModelConfig;
+  /** Wall-clock budget for a single task before it is aborted. Defaults to 30s. */
+  taskTimeoutMs?: number;
   metadata?: Record<string, unknown>;
 }
 
@@ -125,9 +128,20 @@ export interface WorkflowStep {
   agentType: AgentType;
   payload: TaskPayload;
   dependencies?: string[];
+  /**
+   * Guard expression. Supported grammar:
+   *   always | never
+   *   steps.<stepId>.(status|output) (==|!=) <'literal'|"literal"|bare>
+   *   combined with && and ||
+   * An unparseable condition aborts the run rather than silently skipping the step.
+   */
   condition?: string;
-  onError?: 'fail' | 'skip' | 'retry';
+  /** What to do when the step fails after exhausting retries. Defaults to 'fail'. */
+  onError?: 'fail' | 'skip';
+  /** Number of *retries* after the initial attempt. 0 (default) means a single attempt. */
   maxRetries?: number;
+  /** Base delay for exponential backoff between retries. Defaults to 100ms. */
+  retryBackoffMs?: number;
 }
 
 export interface WorkflowTrigger {

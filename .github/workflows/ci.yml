@@ -2,21 +2,29 @@ name: CI
 
 on:
   push:
-    branches: [main, master, "copilot/**"]
+    branches: [main, master, "copilot/**", "claude/**"]
   pull_request:
     branches: [main, master]
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-test:
-    name: Build & Test
+    name: Build & Test (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
-        node-version: [20.x]
+        # Matches the >=20.19 range declared in package.json engines. Vite 7
+        # requires ^20.19 || >=22.12, so Node 18 (EOL April 2025) cannot build
+        # the frontend.
+        node-version: [20.x, 22.x]
 
     steps:
       - name: Checkout repository
@@ -31,14 +39,13 @@ jobs:
       - name: Install dependencies
         run: npm ci --workspaces --include-workspace-root
 
-      - name: Build shared package
-        run: npm run build -w shared
+      # Builds every workspace, frontend included. A type error in the UI is a
+      # broken build and must fail here, not at someone's checkout.
+      - name: Build all workspaces
+        run: npm run build
 
-      - name: Build backend
-        run: npm run build -w backend
-
-      - name: Run backend tests
-        run: npm run test -w backend
+      - name: Run backend tests with coverage thresholds
+        run: npm run test:coverage -w backend
 
       - name: Run frontend tests
         run: npm run test -w frontend
@@ -65,8 +72,26 @@ jobs:
 
       - name: Lint backend
         run: npm run lint -w backend
-        continue-on-error: true
 
       - name: Lint frontend
         run: npm run lint -w frontend
-        continue-on-error: true
+
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --workspaces --include-workspace-root
+
+      - name: Fail on high or critical advisories
+        run: npm audit --audit-level=high
