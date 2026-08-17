@@ -21,8 +21,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Matches the >=18 range declared in package.json engines.
-        node-version: [18.x, 20.x, 22.x]
+        # Matches the >=20.19 range declared in package.json engines. Vite 7
+        # requires ^20.19 || >=22.12, so Node 18 (EOL April 2025) cannot build
+        # the frontend.
+        node-version: [20.x, 22.x]
 
     steps:
       - name: Checkout repository

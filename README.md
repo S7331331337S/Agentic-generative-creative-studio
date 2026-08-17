@@ -116,8 +116,8 @@ The reusable engine is also published separately as
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+
-- npm 9+
+- Node.js 20.19+ (or 22.12+) — required by Vite 7; Node 18 reached end of life in April 2025
+- npm 10+
 
 ### Install
 
