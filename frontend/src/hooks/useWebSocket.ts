@@ -7,49 +7,60 @@ const RECONNECT_INTERVAL = 3000;
 
 export function useWebSocket(onEvent: (event: WsEvent) => void) {
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connecting');
-  const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onEventRef = useRef(onEvent);
-  onEventRef.current = onEvent;
 
-  const connect = useCallback(() => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) return;
-
-    setConnectionStatus('connecting');
-    const ws = new WebSocket(WS_URL);
-    wsRef.current = ws;
-
-    ws.onopen = () => {
-      setConnectionStatus('connected');
-    };
-
-    ws.onmessage = (e) => {
-      try {
-        const event = JSON.parse(e.data) as WsEvent;
-        onEventRef.current(event);
-      } catch {
-        // Ignore malformed messages
-      }
-    };
-
-    ws.onclose = () => {
-      setConnectionStatus('disconnected');
-      reconnectTimerRef.current = setTimeout(connect, RECONNECT_INTERVAL);
-    };
-
-    ws.onerror = () => {
-      setConnectionStatus('error');
-      ws.close();
-    };
-  }, []);
+  // Track the latest handler without tearing down and reopening the socket on
+  // every render. Writing the ref during render would be a render side effect.
+  useEffect(() => {
+    onEventRef.current = onEvent;
+  }, [onEvent]);
 
   useEffect(() => {
-    connect();
-    return () => {
-      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
-      wsRef.current?.close();
+    let socket: WebSocket | null = null;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    // Guards against a close handler scheduling a reconnect after unmount.
+    let cancelled = false;
+
+    const connect = () => {
+      if (cancelled) return;
+
+      setConnectionStatus('connecting');
+      socket = new WebSocket(WS_URL);
+
+      socket.onopen = () => {
+        setConnectionStatus('connected');
+      };
+
+      socket.onmessage = (e) => {
+        try {
+          const event = JSON.parse(e.data) as WsEvent;
+          onEventRef.current(event);
+        } catch {
+          // Ignore malformed messages
+        }
+      };
+
+      socket.onclose = () => {
+        if (cancelled) return;
+        setConnectionStatus('disconnected');
+        reconnectTimer = setTimeout(connect, RECONNECT_INTERVAL);
+      };
+
+      socket.onerror = () => {
+        if (cancelled) return;
+        setConnectionStatus('error');
+        socket?.close();
+      };
     };
-  }, [connect]);
+
+    connect();
+
+    return () => {
+      cancelled = true;
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      socket?.close();
+    };
+  }, []);
 
   return { connectionStatus };
 }
