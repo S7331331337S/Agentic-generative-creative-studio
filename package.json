@@ -16,7 +16,11 @@
     "clean": "npm run clean --workspaces --if-present && rm -rf node_modules"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "@eslint/js": "^9.39.0",
+    "concurrently": "^8.2.2",
+    "eslint": "^9.39.0",
+    "globals": "^16.5.0",
+    "typescript-eslint": "^8.68.0"
   },
   "engines": {
     "node": ">=20.19.0",
