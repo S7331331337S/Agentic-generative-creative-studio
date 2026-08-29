@@ -6,7 +6,8 @@
   "workspaces": [
     "shared",
     "backend",
-    "frontend"
+    "frontend",
+    "canvas"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",

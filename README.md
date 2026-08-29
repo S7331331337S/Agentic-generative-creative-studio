@@ -20,6 +20,11 @@ The reusable engine is also published separately as
 [`agentic-framework-core`](https://github.com/S7331331337S/agentic-framework-core); see
 [MIGRATION.md](MIGRATION.md) for how the two relate.
 
+**MSTRMND fit:** this studio is the scheduling/DAG reference for Content Engine
+**CANVAS**, not a product to merge. The Express dashboard stays here.
+See [docs/MSTRMND-CANVAS.md](docs/MSTRMND-CANVAS.md) and the extracted
+[`canvas/`](canvas/) package.
+
 ---
 
 ## Architecture Overview
@@ -94,6 +99,7 @@ The reusable engine is also published separately as
 
 ```
 ├── shared/           # Shared TypeScript types
+├── canvas/           # MSTRMND CANVAS runtime (DAG, voice, draft tools) — not the Express app
 ├── backend/          # Node.js + Express API server
 │   ├── src/
 │   │   ├── agents/           # TextAgent, ImageAgent, AudioAgent, MultiModalAgent
@@ -116,7 +122,7 @@ The reusable engine is also published separately as
 ## Getting Started
 
 ### Prerequisites
-- Node.js 20.19+ (or 22.12+) — required by Vite 7; Node 18 reached end of life in April 2025
+- Node.js 24 (CI). Vite 7 also accepts 20.19+ or 22.12+; Node 18 is EOL.
 - npm 10+
 
 ### Install

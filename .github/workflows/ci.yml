@@ -21,10 +21,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Matches the >=20.19 range declared in package.json engines. Vite 7
-        # requires ^20.19 || >=22.12, so Node 18 (EOL April 2025) cannot build
-        # the frontend.
-        node-version: [20.x, 22.x]
+        # Node 24 is the active even LTS. 20.x remains the declared engines
+        # floor (Vite 7 needs ^20.19 || >=22.12). Node 18 is EOL.
+        node-version: [20.x, 24.x]
 
     steps:
       - name: Checkout repository
@@ -50,6 +49,9 @@ jobs:
       - name: Run frontend tests
         run: npm run test -w frontend
 
+      - name: Run CANVAS runtime tests
+        run: npm run test -w canvas
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
@@ -61,7 +63,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: '20.x'
+          node-version: '24.x'
           cache: 'npm'
 
       - name: Install dependencies
@@ -76,6 +78,9 @@ jobs:
       - name: Lint frontend
         run: npm run lint -w frontend
 
+      - name: Lint CANVAS runtime
+        run: npm run lint -w canvas
+
   audit:
     name: Dependency audit
     runs-on: ubuntu-latest
@@ -87,7 +92,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: '20.x'
+          node-version: '24.x'
           cache: 'npm'
 
       - name: Install dependencies
