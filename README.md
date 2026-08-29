@@ -122,7 +122,7 @@ See [docs/MSTRMND-CANVAS.md](docs/MSTRMND-CANVAS.md) and the extracted
 ## Getting Started
 
 ### Prerequisites
-- Node.js 20.19+ (or 22.12+) — required by Vite 7; Node 18 reached end of life in April 2025
+- Node.js 24 (CI). Vite 7 also accepts 20.19+ or 22.12+; Node 18 is EOL.
 - npm 10+
 
 ### Install
