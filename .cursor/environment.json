@@ -1,0 +1,19 @@
+{
+  "name": "Agentic Generative Creative Studio",
+  "user": "ubuntu",
+  "install": "npm ci --workspaces --include-workspace-root && npm run build -w shared",
+  "terminals": [
+    {
+      "name": "backend",
+      "command": "npm run dev -w backend"
+    },
+    {
+      "name": "frontend",
+      "command": "npm run dev -w frontend"
+    }
+  ],
+  "ports": [
+    { "name": "frontend", "port": 3000 },
+    { "name": "backend", "port": 3001 }
+  ]
+}
